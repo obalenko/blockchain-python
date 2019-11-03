@@ -1,0 +1,4 @@
+
+backend/blockchain/__pycache__/
+
+*.pyc
