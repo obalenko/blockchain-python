@@ -1,4 +1,8 @@
+import time
 from backend.blockchain.block import Block, GENESIS_DATA
+from backend.config import MINE_RATE_SEC
+from backend.util.hex_to_binary import hex_to_binary
+
 
 def test_mine_block():
     last_block = Block.genesis()
@@ -8,7 +12,7 @@ def test_mine_block():
     assert isinstance(block, Block)
     assert block.data == data
     assert block.last_hash == last_block.hash
-    assert block.hash[0:block.difficulty] == '0' * block.difficulty
+    assert hex_to_binary(block.hash)[0:block.difficulty] == '0' * block.difficulty
 
 def test_genesis():
     genesis = Block.genesis()
@@ -16,3 +20,35 @@ def test_genesis():
 
     for key, value in GENESIS_DATA.items():
         getattr(genesis, key) == value
+
+
+def test_quickly_mined_block():
+    last_block = Block.mine_block(Block.genesis(), 'foo')
+    print(f'last_block: {last_block}')
+    mined_block = Block.mine_block(last_block, 'bar')
+    print(f'mined_block: {mined_block}')
+    assert mined_block.difficulty == last_block.difficulty + 1
+
+
+def test_slowly_mined_block():
+    last_block = Block.mine_block(Block.genesis(), 'foo')
+    print(f'last_block: {last_block}')
+    time.sleep(MINE_RATE_SEC)
+    mined_block = Block.mine_block(last_block, 'bar')
+    print(f'mined_block: {mined_block}')
+    assert mined_block.difficulty == last_block.difficulty - 1
+
+
+def test_mined_block_difficulty_limits_at_1():
+    last_block = Block(
+        int(time.time()),
+        'test_last_hash',
+        'test_hash',
+        'test_data',
+        1,
+        0
+    )
+    time.sleep(MINE_RATE_SEC)
+    mined_block = Block.mine_block(last_block, 'bar')
+
+    assert mined_block.difficulty == 1

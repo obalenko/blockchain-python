@@ -1,0 +1,1 @@
+MINE_RATE_SEC = 4

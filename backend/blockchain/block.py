@@ -1,6 +1,7 @@
-import random
 import time
 from backend.util.crypto_hash import crypto_hash
+from backend.config import MINE_RATE_SEC
+from backend.util.hex_to_binary import hex_to_binary
 
 GENESIS_DATA = {
     'timestamp': 1,
@@ -45,22 +46,48 @@ class Block:
         :param data:
         :return:
         '''
-        timestamp = int(round(time.time(), 0) + random.randrange(1000, 5000))
+        timestamp = int(time.time())
         last_hash = last_block.hash
-        difficulty = last_block.difficulty
+        difficulty = Block.adjust_difficulty(last_block, timestamp)
         nonce = 0
         hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
-        while hash[0:difficulty] != '0' * difficulty:
+        while hex_to_binary(hash)[0:difficulty] != '0' * difficulty:
             nonce += 1
-            timestamp = int(round(time.time(), 0) + random.randrange(1000, 5000))
+            timestamp = int(time.time())
+            difficulty = Block.adjust_difficulty(last_block, timestamp)
             hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
         return Block(timestamp, last_hash, hash, data, difficulty, nonce)
 
+
     @staticmethod
     def genesis():
+        '''
+        Generate the genesis block
+        :return:
+        '''
         return Block(**GENESIS_DATA)
+
+
+    @staticmethod
+    def adjust_difficulty(last_block, new_timestamp):
+        '''
+        Calculate the adjusting difficulty according to the MINE_RATE
+        Increase the difficulty for quickly mined blocks
+        Decrease the difficulty for slowly mined blocks
+        :param last_block:
+        :param new_timestamp:
+        :return:
+        '''
+        if (new_timestamp - last_block.timestamp) < MINE_RATE_SEC:
+            return last_block.difficulty + 1
+
+        if (last_block.difficulty - 1) > 0:
+            return last_block.difficulty - 1
+
+        return 1
+
 
 def main():
     genesis_block = Block.genesis()
