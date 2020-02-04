@@ -48,6 +48,7 @@ class Block:
         '''
         return self.__dict__
 
+
     @staticmethod
     def mine_block(last_block, data):
         '''
@@ -79,6 +80,16 @@ class Block:
         :return:
         '''
         return Block(**GENESIS_DATA)
+
+
+    @staticmethod
+    def from_json(block_json):
+        '''
+        Deserialize a block's json representation back into a block instance.
+        :param block_json:
+        :return:
+        '''
+        return Block(**block_json)
 
 
     @staticmethod
