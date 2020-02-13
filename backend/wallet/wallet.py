@@ -52,6 +52,7 @@ class Wallet:
 
 
 def main():
+    #wallet
     wallet = Wallet()
     print(f'waller.__dict__: {wallet.__dict__}')
     data = {'foo': 'bar'}
